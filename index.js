@@ -30,6 +30,7 @@ async function run() {
 
         const bookCollection = client.db('bookDB').collection('books')
         const categoryCollection = client.db('bookCategoryDB').collection('categories')
+        const authorCollection = client.db('popularAuthor').collection('authors')
 
 
         app.post('/books', async (req, res) => {
@@ -46,6 +47,11 @@ async function run() {
         })
         app.get('/categories', async (req, res) => {
             const cursor = categoryCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+        app.get('/authors', async (req, res) => {
+            const cursor = authorCollection.find();
             const result = await cursor.toArray();
             res.send(result)
         })
