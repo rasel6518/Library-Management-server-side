@@ -32,6 +32,7 @@ async function run() {
         const categoryCollection = client.db('bookCategoryDB').collection('categories')
         const authorCollection = client.db('popularAuthor').collection('authors')
         const newBookCollection = client.db('newBookDB').collection('newBooks')
+        const borrowBookCollection = client.db('borrowBookDB').collection('borrowBooks')
 
 
         app.post('/books', async (req, res) => {
@@ -40,6 +41,13 @@ async function run() {
             const result = await bookCollection.insertOne(newBook);
             res.send(result)
         })
+
+        app.post('/borrowbooks', async (req, res) => {
+            const borrowBooksDetails = req.body;
+            // delete borrowBooksDetails._id
+            const result = await borrowBookCollection.insertOne(borrowBooksDetails);
+            res.send(result);
+        });
 
         app.get('/books', async (req, res) => {
             const cursor = bookCollection.find();
@@ -58,6 +66,19 @@ async function run() {
         })
         app.get('/newBooks', async (req, res) => {
             const cursor = newBookCollection.find();
+            const result = await cursor.toArray();
+            res.send(result)
+        })
+
+        app.get('/books/:id', async (req, res) => {
+            const id = req.params.id;
+            const query = { _id: new ObjectId(id) };
+            const result = await bookCollection.findOne(query);
+            res.send(result)
+        })
+
+        app.get('/borrowbooks', async (req, res) => {
+            const cursor = borrowBookCollection.find();
             const result = await cursor.toArray();
             res.send(result)
         })
