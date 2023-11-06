@@ -83,6 +83,29 @@ async function run() {
             res.send(result)
         })
 
+
+
+        app.put('/books/:id', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const options = { upsert: true };
+            const updatebooks = req.body;
+            const books = {
+                $set: {
+                    name: updatebooks.name,
+                    author: updatebooks.author,
+                    category: updatebooks.category,
+                    quantity: updatebooks.quantity,
+                    rating: updatebooks.rating,
+                    description: updatebooks.description,
+                    image: updatebooks.image,
+                }
+            }
+            const result = await bookCollection.updateOne(filter, books, options);
+
+            res.send(result)
+        })
+
         // Connect the client to the server	(optional starting in v4.7)
         await client.connect();
 
