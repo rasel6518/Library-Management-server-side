@@ -44,11 +44,30 @@ async function run() {
 
         app.post('/borrowbooks', async (req, res) => {
             const borrowBooksDetails = req.body;
-            // delete borrowBooksDetails._id
+            const userEmail = borrowBooksDetails.userEmail;
+            const bookId = borrowBooksDetails.books._id;
+
+
+
+            // console.log('check borrow details', bookId, userEmail);
+
+            // Check if the user has already borrowed the same book
+            const existingBorrowRecord = await borrowBookCollection.findOne({
+                'books._id': bookId,
+                userEmail,
+                returned: false,
+            });
+            console.log('already have?', existingBorrowRecord);
+
+            if (existingBorrowRecord) {
+                const message = `You have already borrowed ${borrowBooksDetails.books.name}`;
+                return res.status(400).send({ acknowledged: false, message });
+            }
+
+            // If not, proceed with the borrowing process
             const result = await borrowBookCollection.insertOne(borrowBooksDetails);
             res.send(result);
         });
-
         app.get('/books', async (req, res) => {
             const cursor = bookCollection.find();
             const result = await cursor.toArray();
@@ -106,15 +125,44 @@ async function run() {
             res.send(result)
         })
 
+
+        app.delete('/borrowbooks/:id', async (req, res) => {
+            const id = req.params.id;
+            console.log('Deleting book with id:', id);
+
+            const query = { _id: new ObjectId(id) };
+            const result = await borrowBookCollection.deleteOne(query);
+            res.send(result);
+        });
+
+
+        app.patch('/books/:id/quantity', async (req, res) => {
+            const id = req.params.id;
+            const filter = { _id: new ObjectId(id) };
+            const updateQuantity = req.body.quantity; // Assuming you pass the new quantity in the request body
+
+            try {
+                const result = await bookCollection.updateOne(filter, {
+                    $set: { quantity: updateQuantity }
+                });
+
+                res.send(result);
+            } catch (error) {
+                console.error('Error updating book quantity:', error);
+                res.status(500).send({ error: 'Internal Server Error' });
+            }
+        });
+
+
         // Connect the client to the server	(optional starting in v4.7)
-        await client.connect();
+        // await client.connect();
 
 
 
 
 
         // Send a ping to confirm a successful connection
-        await client.db("admin").command({ ping: 1 });
+        // await client.db("admin").command({ ping: 1 });
         console.log("Pinged your deployment. You successfully connected to MongoDB!");
     } finally {
         // Ensures that the client will close when you finish/error
